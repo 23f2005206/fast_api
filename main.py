@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 import numpy as np
 
-embedding_model = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
+embedding_model = SentenceTransformer(model_name="BAAI/bge-small-en-v1.5")
 
 app = FastAPI()
 
@@ -41,4 +41,5 @@ async def similarity_search(req: SimilarityRequest):
     top3_docs = [doc for _, doc in scored_docs[:3]]
 
     return {"matches": top3_docs}
+
 
