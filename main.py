@@ -4,7 +4,8 @@ from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 import numpy as np
 
-embedding_model = SentenceTransformer(model_name="BAAI/bge-small-en-v1.5")
+# FIXED: No 'model_name=' keyword
+embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 app = FastAPI()
 
@@ -27,10 +28,13 @@ def cosine_similarity(vec1: list[float], vec2: list[float]) -> float:
 @app.post("/similarity")
 async def similarity_search(req: SimilarityRequest):
     query = req.query
-    docs = req.docs
+    docs = req.docs[:10]  # LIMIT to 10 docs max
 
-    query_emb = embedding_model.encode(query).tolist()
-    doc_embs = embedding_model.encode(docs).tolist()
+    if not docs:
+        return {"matches": []}
+
+    query_emb = embedding_model.encode(query)
+    doc_embs = embedding_model.encode(docs)
 
     similarities = [
         cosine_similarity(query_emb, doc_emb) for doc_emb in doc_embs
@@ -41,5 +45,3 @@ async def similarity_search(req: SimilarityRequest):
     top3_docs = [doc for _, doc in scored_docs[:3]]
 
     return {"matches": top3_docs}
-
-
